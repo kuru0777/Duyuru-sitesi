@@ -1,0 +1,135 @@
+<%- include('includes/head.ejs') %>
+
+</head>
+<!-- Body-->
+<body>
+  <%- include('includes/nav.ejs') %>
+
+  <!-- Basic table -->
+  <div class="table-responsive">
+    <div id="calendar"></div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Duyuru Adı</th>
+          <th>Duyuru Bitiş Tarihi</th>
+          <th>Duyuru Gösterim Tarihi</th>
+          <th>Duyuru Açıklaması</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (duyurular.length > 0) { %>
+          <% let sayi1 = 1; %>
+          <% duyurular.reverse().forEach(function (duyuru) { %>
+            <tr>
+              <th scope="row"><%= sayi1 %></th>
+              <td><%= duyuru.duyuru_adi %></td>
+              <td><%= duyuru.gtarih %></td>
+              <td><%= duyuru.btarih %></td>
+              <td><%= duyuru.aciklama %></td>
+              <td>
+                <div class="btn-group">
+                  <form action="artir-tiklanma" method="post">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                    <a href="/duyuru-detay/<%= duyuru._id %>" class="btn btn-outline-info btn-icon"><i class="fas fa-trash-alt"></i> Göster</a>
+                  </form>
+                  <form action="duyuru-sil" method="post" style="padding-left: 1cm;">
+                    <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                    <% if (yonetici) { %>
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                      <button type="submit" class="btn btn-outline-danger btn-icon" value="1">
+                        <i class="fas fa-trash-alt"></i> Sil
+                      </button>
+                    <% } %>
+                  </form>
+                  <form action="duyuru-duzenle" method="post" style="padding-left: 1cm;">
+                    <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                    <% if (yonetici) { %>
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                      <button type="submit" class="btn btn-outline-primary btn-icon" value="1">
+                        <i class="fas fa-edit"></i> Düzenle
+                      </button>
+                    <% } %>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% sayi1++; %>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="6" style="text-align:center; background-color: rgba(255,0,0,0.2);">Duyuru Yok!</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Relevant products carousel-->
+  <section class="container pb-5 mb-lg-3 mb-xl-4 mb-xxl-5">
+    <div class="d-flex align-items-center justify-content-between pb-4 mb-2 mb-md-3">
+      <h2 class="h1 pt-1 mb-0">Son Eklenen Duyurular</h2>
+      <!-- Slider prev/next buttons-->
+      <div class="d-flex">
+        <button class="btn btn-prev btn-icon btn-sm btn-outline-primary rounded-circle ms-3" type="button" id="relevant-prev"><i class="ai-arrow-left"></i></button>
+        <button class="btn btn-next btn-icon btn-sm btn-outline-primary rounded-circle ms-3" type="button" id="relevant-next"><i class="ai-arrow-right"></i></button>
+      </div>
+    </div>
+    <!-- Slider (popular items)-->
+    <div class="swiper pb-sm-2 pb-md-3" data-swiper-options='{
+      "slidesPerView": 1,
+      "spaceBetween": 24,
+      "loop": true,
+      "navigation": {
+        "prevEl": "#relevant-prev",
+        "nextEl": "#relevant-next"
+      },
+      "breakpoints": {
+        "500": {
+          "slidesPerView": 2
+        },
+        "768": {
+          "slidesPerView": 3
+        },
+        "1000": {
+          "slidesPerView": 4
+        }
+      }
+    }'>
+      <div class="swiper-wrapper">
+        <% duyurular.slice(0, 5).forEach(function (duyuru) { %>
+          <div class="swiper-slide">
+            <div class="card-hover position-relative bg-secondary rounded-1 p-3 mb-4">
+              <button class="btn btn-icon btn-sm btn-light bg-light border-0 rounded-circle position-absolute top-0 end-0 mt-3 me-3 zindex-5 opacity-0" type="button"><i class="ai-heart fs-xl d-dark-mode-none"></i><i class="ai-heart text-nav fs-xl d-none d-dark-mode-block"></i></button>
+              <a class="d-block p-2 p-xl-4" href="shop-single.html"><img class="d-block mx-auto" src="<%=duyuru.resim_yol %>" width="226" alt="Product"></a>
+            </div>
+            <div class="d-flex mb-1">
+              <h3 class="h6 mb-0"><a href="shop-single.html"><%=duyuru.duyuru_adi %></a></h3>
+            </div>
+            <div class="d-flex align-items-center">
+              <span class="me-2"><%=duyuru.aciklama %></span>
+              <div class="nav ms-auto" data-bs-toggle="tooltip" data-bs-template='<div class="tooltip fs-xs" role="tooltip"><div class="tooltip-inner bg-light text-muted p-0"></div></div>' data-bs-placement="left" title="Görüntüle">
+                <a class="nav-link fs-lg py-2 px-1" href="#"><i class="ai-show"></i></a>
+              </div>
+              <div class="d-flex align-items-center">
+                <span class="me-2"><%=duyuru.tiklanma %></span>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer-->
+  <%- include('includes/footer.ejs') %>
+
+  <%- include('includes/scripts.ejs') %>
+
+</body>
+
+</html>

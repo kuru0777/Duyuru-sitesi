@@ -1,0 +1,60 @@
+<%- include('includes/head.ejs') %>
+
+</head>
+
+<body>
+  <%- include('includes/nav.ejs') %>
+  <div class="d-block justify-content-center"> 
+    <form action="/duyuru-ekle" method="post">
+      <section class="card border-0 py-1 p-md-2 p-xl-3 p-xxl-4 mb-4">
+        <div class="card-body">
+          <div class="d-flex align-items-center pb-4 mt-sm-n1 mb-0 mb-lg-1 mb-xl-3">
+            <i class="ai-circle-plus text-warning lead pe-1 me-2"></i>
+            <h2 class="h4 mb-0">Duyuru Ekle</h2>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="current-pass">Duyuru Adı </label>
+            <div class="password-toggle">
+              <input class="form-control" type="text" name="duyuru_adi" autocomplete="off">
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="current-pass">Duyuru Gösterim Tarih </label>
+            <div class="password-toggle">
+              <input class="form-control" type="datetime-local" name="gtarih" autocomplete="off">
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="current-pass">Duyuru Bitiş Tarih </label>
+            <div class="password-toggle">
+              <input class="form-control" type="datetime-local" name="btarih" autocomplete="off">
+            </div>
+          </div>                                                         
+          <div class="col-sm-6">
+            <label class="form-label" for="current-pass">Açıklama </label>
+            <div class="password-toggle">
+              <input class="form-control" type="text" name="aciklama" autocomplete="off">
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="current-pass">Duyuru Resim Yolu </label>
+            <div class="password-toggle">
+              <input class="form-control" type="text" name="resim_yol" autocomplete="off">
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <label class="form-label" for="current-pass">Duyuru İçeriği</label>
+            <div class="password-toggle">
+              <textarea class="form-control" name="icerik" rows="4" autocomplete="off"></textarea>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end pt-3">
+            <input type="hidden" name="_csrf" value="<%=csrfToken%>">
+            <button class="btn btn-secondary" type="button">Vazgeç</button>
+            <button class="btn btn-primary ms-3" type="submit" value="1">Kaydet</button>
+          </div>
+        </div>
+      </section>
+    </form>
+  </div>
+  <%- include('includes/foot.ejs') %>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('includes/head.ejs') %>
+  <style>
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    .duyuru-adi {
+  margin-top: 10px;
+}
+
+  </style>
+  
+</head>
+
+<body>
+  <%- include('includes/nav.ejs') %>
+
+  <div class="modal fade" id="duyuruDuzenleModal" tabindex="-1" aria-labelledby="duyuruDuzenleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="duyuruDuzenleModalLabel">Duyuru Düzenle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form action="duyuru-duzenle" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="duyuruId" id="duyuruId">
+  
+            <div class="mb-3">
+              <label for="duyuru_adi" class="form-label">Duyuru Adı</label>
+              <input type="text" class="form-control" id="duyuru_adi" name="duyuru_adi" required>
+            </div>
+  
+            <div class="mb-3">
+              <label for="gtarih" class="form-label">Duyuru Gösterim Tarihi</label>
+              <input type="datetime-local" class="form-control" id="gtarih" name="gtarih" required>
+            </div>
+  
+            <div class="mb-3">
+              <label for="btarih" class="form-label">Duyuru Bitiş Tarihi</label>
+              <input type="datetime-local" class="form-control" id="btarih" name="btarih" required>
+            </div>
+  
+            <div class="mb-3">
+              <label for="icerik" class="form-label">Duyuru İçeriği</label>
+              <textarea class="form-control" id="icerik" name="icerik" rows="4" required></textarea>
+            </div>
+  
+            <div class="mb-3">
+              <label for="aciklama" class="form-label">Duyuru Açıklaması</label>
+              <textarea class="form-control" id="aciklama" name="aciklama" rows="4" required></textarea>
+            </div>
+  
+            <div class="mb-3">
+              <label for="resim_yol" class="form-label">Duyuru Resim Yolu</label>
+              <input type="text" class="form-control" id="resim_yol" name="resim_yol" required>
+            </div>
+  
+            <button type="submit" class="btn btn-primary">Kaydet</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+  <div class="table-responsive">
+    <div id="calendar"></div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Duyuru Görseli</th>
+          <th>Duyuru Adı</th>
+          <th>Duyuru Gösterim Tarihi</th>
+          <th>Duyuru Bitiş Tarihi</th>
+          <th>Duyuru Açıklaması</th>
+          <th>İşlemler</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (duyurular.length > 0) { %>
+          <% let sayi1 = 1; %>
+          <% duyurular.reverse().forEach(function (duyuru) { %>
+            <tr>
+              <th scope="row"><%= sayi1 %></th>
+              <td><div class="col-md-8 col-lg-8 mb-8 mb-md-0">
+                <img style="width: 100px; height: 100px;" class="rounded-2" src="<%=duyuru.resim_yol%>" alt="<%=duyuru.adi%>">
+              </div></td>
+              <td style="padding: 1cm;"><%= duyuru.duyuru_adi %></td>
+              <td style="padding: 1cm;"><%= duyuru.gtarih %></td>
+              <td style="padding: 1cm;"><%= duyuru.btarih %></td>
+              <td style="padding: 1cm;"><%= duyuru.aciklama %></td>
+              <td style="padding: 1cm;">
+                <div class="btn-group">
+                  <form action="artir-tiklanma" method="post">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                    <div style="padding-inline: initial;">
+                      <a style="padding: initial;" href="duyuru-detay/<%= duyuru._id %>" class="btn btn-outline-info btn-icon"><i class="fas fa-trash-alt"></i> Göster</a>
+                  </form>
+                  <form action="duyuru-sil" method="post" style="padding-inline: 0.5cm;">
+                    <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                    <% if (yonetici) { %>
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+                      </div>
+                      <button type="submit" class="btn btn-outline-danger btn-icon" value="1">
+                        <i class="fas fa-trash-alt"></i> Sil
+                      </button>
+                      <button type="button" class="btn btn-outline-primary btn-icon duzenleBtn" value="<%= duyuru._id %>">
+                    <i class="fas fa-edit"></i> Düzenle
+                      </button>
+                    <% } %>
+                  </form>
+                  
+                </div>
+              </td>
+            </tr>
+            <% sayi1++; %>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="6" style="text-align:center; background-color: rgba(255,0,0,0.2);">Duyuru Yok!</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  
+
+  <%- include('includes/foot.ejs') %>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+  <script>
+    const duzenleBtns = document.querySelectorAll('.duzenleBtn');
+    const duyuruDuzenleModal = new bootstrap.Modal(document.getElementById('duyuruDuzenleModal'), {
+      keyboard: false
+    });
+
+    duzenleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const duyuruId = btn.value;
+        document.getElementById('duyuruId').value = duyuruId;
+        duyuruDuzenleModal.show();
+      });
+    });
+  </script>
+</body>
+
+</html>
