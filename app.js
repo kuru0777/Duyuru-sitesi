@@ -36,7 +36,7 @@ const yetkiRoutes = require("./routes/yetki"); // .js kullanmıyoruz.
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(rootDir, "public")));
 
-app.use(session({secret:'gizli sifrem', resave:false, saveUnitialized:false, store:store}));
+app.use(session({secret:'gizli sifrem', resave:false, saveUninitialized:false, store:store}));
 
 
 
