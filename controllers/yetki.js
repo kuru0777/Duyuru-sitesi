@@ -1,112 +1,83 @@
 const Kullanici = require("../models/kullanici");
-const bcrypt = require('bcryptjs');
+const bcrypt = require("bcryptjs");
 
 exports.getGiris = (req, res, next) => {
-        console.log(req.session);
-        res.render("giris", {
-          sayfaBasligi: "Yetkili Giriş Paneli",
-          yol: "/giris",
-         
-         
-        });
-    
+  res.render("giris", { sayfaBasligi: "Giriş Yap", yol: "/giris", hata: null });
 };
 
 exports.postGiris = (req, res, next) => {
-    const eposta = req.body.eposta;
-    const sifre = req.body.sifre;
+  const eposta = (req.body.eposta || "").toLowerCase().trim();
+  const sifre = req.body.sifre || "";
 
-    Kullanici.findOne({eposta:eposta})
-    .then(kullanici => {
-      if(!kullanici) {
-        return res.redirect('/giris');
+  Kullanici.findOne({ eposta })
+    .then((kullanici) => {
+      if (!kullanici) {
+        return res.status(401).render("giris", {
+          sayfaBasligi: "Giriş Yap",
+          yol: "/giris",
+          hata: "E-posta veya şifre hatalı.",
+        });
       }
 
-      bcrypt
-      .compare(sifre, kullanici.sifre)
-      .then(sifreKontrol => {
-        if(sifreKontrol) {
-          req.session.oturum_acildi=true;
-          req.session.kullanici=kullanici;
-          return req.session.save(bilgi => {
-             res.redirect('/');
-          })
+      return bcrypt.compare(sifre, kullanici.sifre).then((sifreDogru) => {
+        if (!sifreDogru) {
+          return res.status(401).render("giris", {
+            sayfaBasligi: "Giriş Yap",
+            yol: "/giris",
+            hata: "E-posta veya şifre hatalı.",
+          });
         }
-        res.redirect('/giris');
 
-      })
-      .catch(err => {
-        console.log(err);
-        res.redirect('/giris');
-      })
-
-
+        // Oturum sabitleme (session fixation) saldırılarına karşı oturumu yenile.
+        req.session.regenerate((err) => {
+          if (err) return next(err);
+          req.session.oturum_acildi = true;
+          req.session.kullanici = { _id: kullanici._id, ad: kullanici.ad };
+          req.session.save(() => res.redirect("/"));
+        });
+      });
     })
-    .catch(errr => {
-      console.log(err);
-      res.redirect('giris');
-    })
-
-  
-
+    .catch(next);
 };
 
 exports.getCikis = (req, res, next) => {
-   
-    req.session.destroy(err => {
-        console.log(err);
-        res.redirect('/');
-    })
-        
+  req.session.destroy((err) => {
+    if (err) return next(err);
+    res.clearCookie("connect.sid");
+    res.redirect("/");
+  });
 };
-
 
 exports.getKayit = (req, res, next) => {
-  
-         res.render("kayit", {
-           sayfaBasligi: "Yetkili KAyıt Paneli",
-           yol: "/kayit",
-         
-         });
-     
- };
-
- exports.postKayit = (req, res, next) => {
-
-    const eposta = req.body.eposta;
-    const sifre = req.body.sifre;
-    const ad = req.body.ad;
-    const soyad = req.body.soyad;
-    const bolum = req.body.bolum;
-    const dogumTarihi=req.body.dogumTarihi;
-    const okulNumarasi=req.body.okulNumarasi;
-    Kullanici.findOne({eposta:eposta})
-    .then(kullaniciBilgi => {
-      if(kullaniciBilgi) {
-        return res.redirect('/kayit');
-      }
-      return bcrypt
-      .hash(sifre,12)
-      .then(hashedSifre => {
-        const kullanici = new Kullanici( {
-          eposta:eposta,
-          sifre:hashedSifre,
-          ad:ad,
-          soyad:soyad,
-          bolum:bolum,
-          dogumTarihi:dogumTarihi,
-          okulNumarasi:okulNumarasi,
-
-        });
-        return kullanici.save();
-      })
-      .then(sonuc => {
-        res.redirect('/giris');
-      })
-    })
-    .catch(err => {
-      console.log(err);
-    })
-
+  res.render("kayit", { sayfaBasligi: "Kayıt Ol", yol: "/kayit", hata: null });
 };
-  
+
+exports.postKayit = (req, res, next) => {
+  const eposta = (req.body.eposta || "").toLowerCase().trim();
+  const { sifre, ad, soyad, bolum, dogumTarihi, okulNumarasi } = req.body;
+
+  Kullanici.findOne({ eposta })
+    .then((mevcut) => {
+      if (mevcut) {
+        return res.status(409).render("kayit", {
+          sayfaBasligi: "Kayıt Ol",
+          yol: "/kayit",
+          hata: "Bu e-posta adresi zaten kayıtlı.",
+        });
+      }
+
+      return bcrypt.hash(sifre, 12).then((hashedSifre) => {
+        const kullanici = new Kullanici({
+          eposta,
+          sifre: hashedSifre,
+          ad,
+          soyad,
+          bolum,
+          dogumTarihi,
+          okulNumarasi,
+        });
+        return kullanici.save().then(() => res.redirect("/giris"));
+      });
+    })
+    .catch(next);
+};

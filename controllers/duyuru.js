@@ -1,180 +1,112 @@
 const Duyuru = require("../models/duyuru");
-const moment = require('moment');
-const Kullanici = require('../models/kullanici');
+const tarih = require("../util/tarih");
 
+// Ana liste: sadece yayın aralığında (gtarih <= şimdi <= btarih) olan duyurular.
 exports.getDuyurular = (req, res, next) => {
-  const currentDate = moment().toDate(); 
-  const currentFormattedDate = moment(currentDate).format('DD-MM-YYYY HH:mm'); 
+  const simdi = new Date();
 
-  Duyuru.find({
-    gtarih: { $lte: currentFormattedDate },
-    btarih: { $gte: currentFormattedDate } 
-  })
+  Duyuru.find({ gtarih: { $lte: simdi }, btarih: { $gte: simdi } })
+    .sort({ createdAt: -1 })
     .then((duyurular) => {
       res.render("index", {
-        sayfaBasligi: "Duyuru Listesi",
+        sayfaBasligi: "Duyurular",
         duyurular: duyurular,
-        yol: "/"
+        yol: "/",
+        tarih: tarih,
       });
     })
-    .catch((err) => {
-      console.log(err);
-    });
+    .catch(next);
 };
 
-
-
-
-
 exports.getDuyuru = (req, res, next) => {
-  const duyuruId = req.params.duyuruId;
- 
-  Duyuru.findById(duyuruId)
-  .populate('yazan','ad soyad')
+  Duyuru.findById(req.params.duyuruId)
+    .populate("yazan", "ad soyad")
     .then((duyuru) => {
+      if (!duyuru) {
+        res.status(404);
+        return next();
+      }
       res.render("duyuru-detay", {
-        sayfaBasligi: "Duyuru Bilgisi",
+        sayfaBasligi: duyuru.duyuru_adi,
         duyuru: duyuru,
-        yol: "/"
-       
+        yol: "/",
+        tarih: tarih,
       });
     })
-    .catch((err) => {});
+    .catch(next);
 };
 
 exports.getDuyuruEkle = (req, res, next) => {
-  res.render("duyuru-ekle", {
-    sayfaBasligi: "",
-    baslikGoster: 2,
-    yol: "/duyuru-ekle"
-  
+  res.render("duyuru-form", {
+    sayfaBasligi: "Duyuru Ekle",
+    yol: "/duyuru-ekle",
+    duzenleme: false,
+    duyuru: null,
+    tarih: tarih,
   });
 };
-
 
 exports.postDuyuruEkle = (req, res, next) => {
-  const kullanici_id = req.body.kullanici_id;
-  const duyuru_adi = req.body.duyuru_adi;
-  const gtarih = moment(req.body.gtarih).locale('tr').format('DD-MM-YYYY HH:mm');
-  const btarih = moment(req.body.btarih).locale('tr').format('DD-MM-YYYY HH:mm');
-  const aciklama = req.body.aciklama;
-  const icerik = req.body.icerik;
-  const resim_yol = req.body.resim_yol;
-  const tiklanma = 0;
+  const { duyuru_adi, gtarih, btarih, aciklama, icerik, resim_yol } = req.body;
 
   const duyuru = new Duyuru({
-    duyuru_adi: duyuru_adi,
-    gtarih: gtarih,
-    btarih: btarih,
-    aciklama: aciklama,
-    icerik: icerik,
-    resim_yol: resim_yol,
-    tiklanma: tiklanma
+    duyuru_adi,
+    gtarih: new Date(gtarih),
+    btarih: new Date(btarih),
+    aciklama,
+    icerik,
+    resim_yol,
+    yazan: req.kullanici._id,
   });
 
-  Kullanici.findById(req.kullanici._id)
-    .then((kullanici) => {
-      duyuru.yazan = kullanici;
-      return duyuru.save();
-    })
-    .then((result) => {
-      console.log(result);
-      res.redirect("/");
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  duyuru
+    .save()
+    .then(() => res.redirect("/"))
+    .catch(next);
 };
-
-
 
 exports.getDuyuruDuzenle = (req, res, next) => {
-  const duyuruId = req.params.duyuruId;
-
-  Duyuru.findById(duyuruId)
+  Duyuru.findById(req.params.duyuruId)
     .then((duyuru) => {
-      res.render("duyuru-duzenle", {
+      if (!duyuru) {
+        res.status(404);
+        return next();
+      }
+      res.render("duyuru-form", {
         sayfaBasligi: "Duyuru Düzenle",
+        yol: "/",
+        duzenleme: true,
         duyuru: duyuru,
-        yol: "/"
+        tarih: tarih,
       });
     })
-    .catch((err) => {
-      console.log(err);
-      res.redirect("/");
-    });
+    .catch(next);
 };
-
 
 exports.postDuyuruDuzenle = (req, res, next) => {
-  const duyuruId = req.body.duyuruId;
-  const updatedDuyuruAdi = req.body.duyuru_adi;
-  const updatedGosterimTarihi = moment(req.body.gtarih).locale('tr').format('DD-MM-YYYY HH:mm');
-  const updatedBitisTarihi = moment(req.body.btarih).locale('tr').format('DD-MM-YYYY HH:mm');
-  const updatedAciklama = req.body.aciklama;
-  const updatedIcerik = req.body.icerik;
-  const updatedResimYol = req.body.resim_yol;
+  const { duyuruId, duyuru_adi, gtarih, btarih, aciklama, icerik, resim_yol } =
+    req.body;
 
   Duyuru.findByIdAndUpdate(duyuruId, {
-    duyuru_adi: updatedDuyuruAdi,
-    gtarih: updatedGosterimTarihi,
-    btarih: updatedBitisTarihi,
-    aciklama: updatedAciklama,
-    icerik: updatedIcerik,
-    resim_yol: updatedResimYol
+    duyuru_adi,
+    gtarih: new Date(gtarih),
+    btarih: new Date(btarih),
+    aciklama,
+    icerik,
+    resim_yol,
   })
-    .then(() => {
-      console.log('Duyuru güncellendi!');
-      res.redirect('/');
-    })
-    .catch((err) => {
-      console.log('Güncelleme başarısız: ', err);
-      res.redirect('/');
-    });
+    .then(() => res.redirect("/"))
+    .catch(next);
 };
 
-
-
-
 exports.postSilId = (req, res, next) => {
-  const duyuruId = req.body.duyuruId;
-  Duyuru.findByIdAndRemove(duyuruId)
-    .then((result) => {
-      console.log("Duyuru Silindi");
-      res.redirect("/");
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  Duyuru.findByIdAndDelete(req.body.duyuruId)
+    .then(() => res.redirect("/"))
+    .catch(next);
 };
 
 exports.artirTiklanma = (req, res, next) => {
-  const duyuruId = req.params.duyuruId;
- 
-  Duyuru.findById(duyuruId)
-    .then((duyuru) => {
-      duyuru.tiklanma += 1;
-      return duyuru.save();
-    })
-    .then(() => {
-      console.log('Duyurunun tiklanmasi artirildi.');
-      res.redirect('/');
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-};
-
-exports.getDuyuruById = (req, res, next) => {
-  const duyuruId = req.params.duyuruId;
-  Duyuru.findById(duyuruId)
-    .then((duyuru) => {
-      res.render('index', {
-        duyuru: duyuru,
-        csrfToken: req.csrfToken()
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  Duyuru.findByIdAndUpdate(req.params.duyuruId, { $inc: { tiklanma: 1 } })
+    .then(() => res.redirect("/duyuru-detay/" + req.params.duyuruId))
+    .catch(next);
 };

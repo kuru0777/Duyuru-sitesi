@@ -1,0 +1,65 @@
+<%- include('includes/head.ejs') %>
+<body>
+  <%- include('includes/nav.ejs') %>
+
+  <main class="page">
+    <div class="container">
+      <a class="back-link" href="/">← Duyurulara dön</a>
+
+      <div class="form-card">
+        <span class="eyebrow"><%= duzenleme ? "Düzenle" : "Yeni" %></span>
+        <h1 style="margin:0 0 24px;"><%= duzenleme ? "Duyuruyu Düzenle" : "Duyuru Ekle" %></h1>
+
+        <form action="<%= duzenleme ? '/duyuru-duzenle' : '/duyuru-ekle' %>" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <% if (duzenleme) { %>
+            <input type="hidden" name="duyuruId" value="<%= duyuru._id %>">
+          <% } %>
+
+          <div class="field">
+            <label for="duyuru_adi">Duyuru Adı</label>
+            <input class="input" type="text" id="duyuru_adi" name="duyuru_adi" required
+              value="<%= duyuru ? duyuru.duyuru_adi : '' %>" placeholder="Örn: Bahar dönemi kayıtları">
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="gtarih">Yayın Tarihi</label>
+              <input class="input" type="datetime-local" id="gtarih" name="gtarih" required
+                value="<%= duyuru ? tarih.inputIcin(duyuru.gtarih) : '' %>">
+            </div>
+            <div class="field">
+              <label for="btarih">Bitiş Tarihi</label>
+              <input class="input" type="datetime-local" id="btarih" name="btarih" required
+                value="<%= duyuru ? tarih.inputIcin(duyuru.btarih) : '' %>">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="aciklama">Kısa Açıklama</label>
+            <input class="input" type="text" id="aciklama" name="aciklama" required
+              value="<%= duyuru ? duyuru.aciklama : '' %>" placeholder="Listede görünecek özet">
+          </div>
+
+          <div class="field">
+            <label for="icerik">İçerik</label>
+            <textarea class="textarea" id="icerik" name="icerik" rows="6" required
+              placeholder="Duyurunun tam metni"><%= duyuru ? duyuru.icerik : '' %></textarea>
+          </div>
+
+          <div class="field">
+            <label for="resim_yol">Görsel Bağlantısı <span style="color:var(--text-muted);font-weight:400;">(isteğe bağlı)</span></label>
+            <input class="input" type="url" id="resim_yol" name="resim_yol"
+              value="<%= duyuru ? duyuru.resim_yol : '' %>" placeholder="https://...">
+          </div>
+
+          <div class="form-actions">
+            <a class="btn btn-outline" href="/">Vazgeç</a>
+            <button class="btn btn-primary" type="submit"><%= duzenleme ? "Kaydet" : "Yayınla" %></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <%- include('includes/foot.ejs') %>

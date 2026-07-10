@@ -1,37 +1,35 @@
-﻿<%- include('includes/head.ejs') %>
+<%- include('includes/head.ejs') %>
+<body>
+  <%- include('includes/nav.ejs') %>
 
-  </head>
-  <body>
-    <%- include('includes/nav.ejs') %>
+  <main class="page">
+    <div class="container">
+      <a class="back-link" href="/">← Tüm duyurular</a>
 
-  
-    
-    <section class="container pb-5 mb-sm-2 mb-lg-3 mb-xl-4 mb-xxl-5">
-      <div class="row align-items-center pb-md-3">
-        <div class="col-md-6 col-lg-5 mb-4 mb-md-0">
-          <img class="rounded-1" src="<%=duyuru.resim_yol%>" alt="Duyuru Görseli" style="width: 500px; height: 500px;">
+      <div class="detail">
+        <div class="detail-media">
+          <% if (duyuru.resim_yol) { %>
+            <img src="<%= duyuru.resim_yol %>" alt="<%= duyuru.duyuru_adi %>">
+          <% } %>
         </div>
-        
-        <div class="col-md-6 col-lg-5 offset-lg-1">
-          <div class="ps-md-4 ps-lg-0">
-            <h2 class="h3 mb-sm-4">  <%=duyuru.duyuru_adi %></h2>
-            <p class="mb-4 mb-lg-5">  <%=duyuru.aciklama %></p>
-            <p class="mb-8 mb-lg-5" style="color: rgba(0, 0, 0, 0.916);"><%=duyuru.icerik %></p>
-            <ul class="list-unstyled mb-0">
-              
-              <li class="mb-3">Görüntülenme Tarihi<span class="text-dark fw-semibold ms-2"> <%=duyuru.gtarih %></span></li>
-              <li class="mb-3">Bitiş Tarihi<span class="text-dark fw-semibold ms-2"> <%=duyuru.btarih %></span></li>
-              <p>Duyuruyu Yapan: <%= duyuru.yazan.ad %> <%= duyuru.yazan.soyad %></p>
 
+        <div>
+          <span class="eyebrow">Duyuru</span>
+          <h1><%= duyuru.duyuru_adi %></h1>
+          <p class="lead"><%= duyuru.aciklama %></p>
+          <div class="detail-content"><%= duyuru.icerik %></div>
 
-              
-              <input type="hidden" name="_csrf" value="<%=csrfToken%>">
-            </ul>
-          </div>
+          <ul class="detail-facts">
+            <li><span class="k">Yayın tarihi</span><span class="v"><%= tarih.bicimlendir(duyuru.gtarih) %></span></li>
+            <li><span class="k">Bitiş tarihi</span><span class="v"><%= tarih.bicimlendir(duyuru.btarih) %></span></li>
+            <% if (duyuru.yazan) { %>
+              <li><span class="k">Duyuruyu yapan</span><span class="v"><%= duyuru.yazan.ad %> <%= duyuru.yazan.soyad %></span></li>
+            <% } %>
+            <li><span class="k">Görüntülenme</span><span class="v"><%= duyuru.tiklanma %></span></li>
+          </ul>
         </div>
       </div>
-    </section>
+    </div>
+  </main>
 
-
-    <%- include('includes/foot.ejs') %>
-
+  <%- include('includes/foot.ejs') %>

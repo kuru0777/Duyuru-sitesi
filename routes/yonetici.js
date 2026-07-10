@@ -1,17 +1,14 @@
-const express = require('express');
-const path = require('path');
-
+const express = require("express");
 const router = express.Router();
-const rootDir = require('../util/path');
 
-const yetkiKontrol = require('../util/yetkiKontrol');
+const yetkiKontrol = require("../util/yetkiKontrol");
+const duyuruController = require("../controllers/duyuru");
 
+// Tüm yönetici işlemleri yetki kontrolünden geçer.
+router.get("/duyuru-ekle", yetkiKontrol, duyuruController.getDuyuruEkle);
+router.post("/duyuru-ekle", yetkiKontrol, duyuruController.postDuyuruEkle);
 
-const duyuruController=require('../controllers/duyuru');
+router.get("/duyuru-duzenle/:duyuruId", yetkiKontrol, duyuruController.getDuyuruDuzenle);
+router.post("/duyuru-duzenle", yetkiKontrol, duyuruController.postDuyuruDuzenle);
 
-router.get('/duyuru-ekle', yetkiKontrol, duyuruController.getDuyuruEkle);
-router.post('/duyuru-ekle',yetkiKontrol, duyuruController.postDuyuruEkle);
-
-router.post('/duyuru-duzenle',yetkiKontrol, duyuruController.postDuyuruDuzenle);
-
-exports.routes=router;
+module.exports = router;
